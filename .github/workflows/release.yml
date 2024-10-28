@@ -1,0 +1,40 @@
+name: Build AppImage
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "5 */12 * * *"
+  push:
+    branches:
+      - "main"
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    name: Lark AppImage
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        id: build
+        run: build.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+            name: ${{ matrix.product }}-continuous.AppImage
+            path: 'dist'
+
+      - name: Release Continuous
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          title: Latest Continous build for Cursor
+          automatic_release_tag: latest
+          prerelease: false
+          draft: false
+          files: |
+            dist
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
