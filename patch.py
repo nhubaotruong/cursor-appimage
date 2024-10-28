@@ -18,6 +18,8 @@ def patch():
         if key in product_data:
             cache_data[key] = product_data[key]
         product_data[key] = patch_data[key]
+    if "extensionMaxVersions" in product_data:
+        del product_data["extensionMaxVersions"]
     with open(file=product_path, mode="w") as product_file:
         json.dump(obj=product_data, fp=product_file, indent="\t")
     with open(file=cache_path, mode="w") as cache_file:
