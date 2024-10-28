@@ -13,7 +13,7 @@ permissions:
 jobs:
   version:
     name: Cursor AppImage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -26,8 +26,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-            name: ${{ matrix.product }}-continuous.AppImage
-            path: 'dist'
+          path: 'dist'
 
       - name: Release Continuous
         uses: marvinpinto/action-automatic-releases@latest
