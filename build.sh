@@ -53,7 +53,7 @@ python patch.py /tmp/patch_marketplace.json
 curl -L "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$(uname -m).AppImage" -o /tmp/appimagetool
 chmod +x /tmp/appimagetool
 
-VERSION=$(jq '.version' squashfs-root/resources/app/package.json)
+VERSION=$(jq -r '.version' squashfs-root/resources/app/package.json)
 chmod 0755 squashfs-root
 
 # GH_USER="$( echo $GITHUB_REPOSITORY | grep -o ".*/" | head -c-2 )"
