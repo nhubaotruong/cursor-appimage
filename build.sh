@@ -55,12 +55,13 @@ python patch.py /tmp/patch_marketplace.json
 
 curl -L "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(uname -m).AppImage" -o /tmp/appimagetool
 chmod +x /tmp/appimagetool
+/tmp/appimagetool --appimage-extract && mv /tmp/squashfs-root /tmp/appimagetool.AppDir
 
 VERSION=$(jq -r '.version' squashfs-root/resources/app/package.json)
 echo "VERSION=$VERSION" >>$GITHUB_ENV
 chmod 0755 squashfs-root
 
-/tmp/appimagetool -n --comp zstd squashfs-root --updateinformation "gh-releases-zsync|$GITHUB_REPOSITORY|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
+/tmp/appimagetool.AppDir/AppRun -n --comp zstd squashfs-root --updateinformation "gh-releases-zsync|$GITHUB_REPOSITORY|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
 
 mkdir -p dist
 mv Cursor-"$VERSION"-"$(uname -m)".AppImage* dist
