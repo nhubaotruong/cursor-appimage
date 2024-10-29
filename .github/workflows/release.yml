@@ -48,6 +48,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           name: Cursor AppImage Continuous Build
+          tag: latest
           artifacts: |
             dist/*
           token: ${{ secrets.GITHUB_TOKEN }}
