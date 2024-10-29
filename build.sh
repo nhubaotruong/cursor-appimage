@@ -64,7 +64,7 @@ chmod 0755 squashfs-root
 GH_USER="nhubaotruong"
 GH_REPO="cursor-appimage"
 
-/tmp/appimagetool -n --comp gzip squashfs-root --updateinformation "gh-releases-zsync|$GH_USER|$GH_REPO|latest|$Cursor*.AppImage.zsync" Cursor-$VERSION-$(uname -m).AppImage
+/tmp/appimagetool -n --comp gzip squashfs-root --updateinformation "gh-releases-zsync|$GH_USER|$GH_REPO|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
 
 mkdir -p dist
-mv Cursor-$VERSION-$(uname -m).AppImage* dist
+mv Cursor-"$VERSION"-"$(uname -m)".AppImage* dist
