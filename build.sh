@@ -43,6 +43,7 @@ export APPIMAGE_EXTRACT_AND_RUN=1
 
 curl -L "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(uname -m).AppImage" -o /tmp/appimagetool
 chmod +x /tmp/appimagetool
+/tmp/appimagetool --appimage-extract && mv ./squashfs-root /tmp/appimagetool.AppDir
 
 curl -L https://downloader.cursor.sh/linux/appImage/x64 -o app.AppImage
 
@@ -60,7 +61,7 @@ curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketpla
 python patch.py /tmp/patch_features.json
 python patch.py /tmp/patch_marketplace.json
 
-/tmp/appimagetool -n --comp zstd squashfs-root --updateinformation "gh-releases-zsync|$GITHUB_REPOSITORY|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
+/tmp/appimagetool.AppDir/AppRun -n --comp zstd squashfs-root --updateinformation "gh-releases-zsync|$GITHUB_REPOSITORY|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
 
 mkdir -p dist
 mv Cursor-"$VERSION"-"$(uname -m)".AppImage* dist
