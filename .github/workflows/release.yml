@@ -28,13 +28,27 @@ jobs:
         with:
           path: 'dist'
 
-      - name: Release Continuous
-        uses: marvinpinto/action-automatic-releases@latest
+      - name: Release tag
+        uses: ncipollo/release-action@v1
         with:
-          title: Latest Continous build for Cursor
-          automatic_release_tag: latest
-          prerelease: false
-          draft: false
-          files: |
-            dist
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          name: Cursor AppImage ${{ env.VERSION }}
+          tag: ${{ env.VERSION }}
+          artifacts: |
+            dist/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          removeArtifacts: true
+          artifactErrorsFailBuild: true
+          generateReleaseNotes: true
+
+      - name: Release Continuous
+        uses: ncipollo/release-action@v1
+        with:
+          name: Cursor AppImage Continuous Build
+          artifacts: |
+            dist/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          removeArtifacts: true
+          artifactErrorsFailBuild: true
+          generateReleaseNotes: true

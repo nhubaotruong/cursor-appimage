@@ -53,18 +53,14 @@ curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketpla
 python patch.py /tmp/patch_features.json
 python patch.py /tmp/patch_marketplace.json
 
-curl -L "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-$(uname -m).AppImage" -o /tmp/appimagetool
+curl -L "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(uname -m).AppImage" -o /tmp/appimagetool
 chmod +x /tmp/appimagetool
 
 VERSION=$(jq -r '.version' squashfs-root/resources/app/package.json)
+echo "VERSION=$VERSION" >>$GITHUB_ENV
 chmod 0755 squashfs-root
 
-# GH_USER="$( echo $GITHUB_REPOSITORY | grep -o ".*/" | head -c-2 )"
-# GH_REPO="$( echo $GITHUB_REPOSITORY | grep -o "/.*" | cut -c2- )"
-GH_USER="nhubaotruong"
-GH_REPO="cursor-appimage"
-
-/tmp/appimagetool -n --comp gzip squashfs-root --updateinformation "gh-releases-zsync|$GH_USER|$GH_REPO|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
+/tmp/appimagetool -n --comp zstd squashfs-root --updateinformation "gh-releases-zsync|$GITHUB_REPOSITORY|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
 
 mkdir -p dist
 mv Cursor-"$VERSION"-"$(uname -m)".AppImage* dist
