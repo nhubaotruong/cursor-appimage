@@ -37,6 +37,9 @@
 # else
 #     ./pkg2appimage.AppImage lark.yml
 # fi
+set -eu
+
+export APPIMAGE_EXTRACT_AND_RUN=1
 
 curl -L https://downloader.cursor.sh/linux/appImage/x64 -o app.AppImage
 
