@@ -41,12 +41,6 @@ set -eu
 
 export APPIMAGE_EXTRACT_AND_RUN=1
 
-curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features -o /tmp/patch_features.json
-curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace -o /tmp/patch_marketplace.json
-
-python patch.py /tmp/patch_features.json
-python patch.py /tmp/patch_marketplace.json
-
 curl -L "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(uname -m).AppImage" -o /tmp/appimagetool
 chmod +x /tmp/appimagetool
 /tmp/appimagetool --appimage-extract && mv ./squashfs-root /tmp/appimagetool.AppDir
@@ -60,6 +54,12 @@ chmod +x app.AppImage
 VERSION=$(jq -r '.version' squashfs-root/resources/app/package.json)
 echo "VERSION=$VERSION" >>$GITHUB_ENV
 chmod 0755 squashfs-root
+
+curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features -o /tmp/patch_features.json
+curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace -o /tmp/patch_marketplace.json
+
+python patch.py /tmp/patch_features.json
+python patch.py /tmp/patch_marketplace.json
 
 /tmp/appimagetool.AppDir/AppRun -n --comp zstd squashfs-root --updateinformation "gh-releases-zsync|$GITHUB_REPOSITORY|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
 
