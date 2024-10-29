@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          apt-get update && apt-get install desktop-file-utils zsync -y --no-install-recommends
+          sudo apt-get update && sudo apt-get install desktop-file-utils zsync -y --no-install-recommends
       - uses: actions/checkout@v4
       - name: Build
         id: build
