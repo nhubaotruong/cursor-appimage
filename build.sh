@@ -41,12 +41,6 @@ set -eu
 
 export APPIMAGE_EXTRACT_AND_RUN=1
 
-curl -L https://downloader.cursor.sh/linux/appImage/x64 -o app.AppImage
-
-chmod +x app.AppImage
-
-./app.AppImage --appimage-extract
-
 curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features -o /tmp/patch_features.json
 curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace -o /tmp/patch_marketplace.json
 
@@ -55,7 +49,13 @@ python patch.py /tmp/patch_marketplace.json
 
 curl -L "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(uname -m).AppImage" -o /tmp/appimagetool
 chmod +x /tmp/appimagetool
-/tmp/appimagetool --appimage-extract && mv /tmp/squashfs-root /tmp/appimagetool.AppDir
+/tmp/appimagetool --appimage-extract && mv ./squashfs-root /tmp/appimagetool.AppDir
+
+curl -L https://downloader.cursor.sh/linux/appImage/x64 -o app.AppImage
+
+chmod +x app.AppImage
+
+./app.AppImage --appimage-extract
 
 VERSION=$(jq -r '.version' squashfs-root/resources/app/package.json)
 echo "VERSION=$VERSION" >>$GITHUB_ENV
