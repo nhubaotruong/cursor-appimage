@@ -61,7 +61,7 @@ curl -L https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketpla
 python patch.py /tmp/patch_features.json
 python patch.py /tmp/patch_marketplace.json
 
-/tmp/appimagetool.AppDir/AppRun -n --comp zstd squashfs-root --updateinformation "gh-releases-zsync|$GITHUB_REPOSITORY|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
+/tmp/appimagetool.AppDir/AppRun -n --comp zstd squashfs-root --updateinformation "gh-releases-zsync|${GITHUB_REPOSITORY/\//|}|latest|Cursor*.AppImage.zsync" Cursor-"$VERSION"-"$(uname -m)".AppImage
 
 mkdir -p dist
 mv Cursor-"$VERSION"-"$(uname -m)".AppImage* dist
