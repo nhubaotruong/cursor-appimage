@@ -21,34 +21,24 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install desktop-file-utils zsync -y --no-install-recommends
       - uses: actions/checkout@v4
+
       - name: Build
         id: build
         run: |
           ./build.sh
 
       - name: Upload artifact
+        if: env.APP_UPDATE_NEEDED == 'true'
         uses: actions/upload-artifact@v4
         with:
           path: 'dist'
 
       - name: Release tag
+        if: env.APP_UPDATE_NEEDED == 'true'
         uses: ncipollo/release-action@v1
         with:
           name: Cursor AppImage ${{ env.VERSION }}
           tag: ${{ env.VERSION }}
-          artifacts: |
-            dist/*
-          token: ${{ secrets.GITHUB_TOKEN }}
-          allowUpdates: true
-          removeArtifacts: true
-          artifactErrorsFailBuild: true
-          generateReleaseNotes: true
-
-      - name: Release Continuous
-        uses: ncipollo/release-action@v1
-        with:
-          name: Cursor AppImage Continuous Build
-          tag: latest
           artifacts: |
             dist/*
           token: ${{ secrets.GITHUB_TOKEN }}
