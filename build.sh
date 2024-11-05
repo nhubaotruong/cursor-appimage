@@ -10,8 +10,8 @@ chmod +x app.AppImage
 mkdir -p cursor.AppDir
 cd cursor.AppDir
 ../app.AppImage --appimage-extract
-VERSION=$(jq -r '.version' squashfs-root/resources/app/package.json)
 cd ..
+VERSION=$(jq -r '.version' cursor.AppDir/squashfs-root/resources/app/package.json)
 
 LATEST_TAG=$(git describe --tags --abbrev=0)
 if [ "$VERSION" == "$LATEST_TAG" ]; then
