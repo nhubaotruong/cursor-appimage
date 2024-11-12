@@ -27,7 +27,7 @@ jobs:
       - name: Build
         id: build
         run: |
-          ./build.py
+          python3 ./build.py
 
       - name: Upload artifact
         if: env.APP_UPDATE_NEEDED == 'true'
