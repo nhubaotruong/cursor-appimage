@@ -3,11 +3,11 @@
 import os
 import platform
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
 import urllib.request
+import json
 
 # Keep original headers
 headers = {
@@ -15,9 +15,24 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
 }
 
+
+def apply_patch(product_path, patch_data):
+    with open(file=product_path, mode="r") as product_file:
+        product_data = json.load(product_file)
+
+    # Apply patches in memory
+    for key in patch_data.keys():
+        product_data[key] = patch_data[key]
+
+    with open(file=product_path, mode="w") as product_file:
+        json.dump(obj=product_data, fp=product_file, indent="\t")
+
+
 # Get latest tag
 latest_tag = (
-    subprocess.check_output(['git', 'describe', '--tags', '--abbrev=0'])
+    subprocess.check_output(
+        ['git', 'describe', '--tags', '--abbrev=0'], cwd=os.getcwd()
+    )
     .decode()
     .strip()
 )
@@ -39,68 +54,73 @@ if version == latest_tag:
         f.write("APP_UPDATE_NEEDED=false\n")
     sys.exit(0)
 
-# Set environment variables for GitHub Actions since update is needed
+# Set environment variables for GitHub Actions
 with open(os.environ.get('GITHUB_ENV', os.devnull), 'a') as f:
     f.write("APP_UPDATE_NEEDED=true\n")
     f.write(f"VERSION={version}\n")
 
 os.environ['APPIMAGE_EXTRACT_AND_RUN'] = '1'
 
-# Now download the actual AppImage using a new request
-req = urllib.request.Request(url, method='GET', headers=headers)
-response = urllib.request.urlopen(req)
-
 # Handle Cursor AppImage download and extraction
 with tempfile.NamedTemporaryFile(suffix='.AppImage', delete=False) as tmp_appimage:
-    tmp_appimage.write(response.read())
+    opener = urllib.request.build_opener()
+    opener.addheaders = list(headers.items())
+    urllib.request.install_opener(opener)
+    urllib.request.urlretrieve(url, tmp_appimage.name)
     os.chmod(tmp_appimage.name, 0o755)
 
     # Create and extract AppImage
     os.makedirs("cursor.AppDir", exist_ok=True)
-    os.chdir("cursor.AppDir")
-    subprocess.run([tmp_appimage.name, "--appimage-extract"], check=True)
-    os.chdir("..")
+    subprocess.run(
+        [tmp_appimage.name, "--appimage-extract"], check=True, cwd="cursor.AppDir"
+    )
 
 # Clean up Cursor AppImage
 os.unlink(tmp_appimage.name)
 
 # Handle appimagetool and patches in separate temp directory
-with tempfile.TemporaryDirectory() as tools_tmpdir:
-    # Download and setup appimagetool
+with tempfile.TemporaryDirectory(delete=False) as tools_tmpdir:
     machine = platform.machine()
+
+    # Download and setup appimagetool
     appimagetool_url = f"https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-{machine}.AppImage"
     appimagetool_path = os.path.join(tools_tmpdir, "appimagetool")
     urllib.request.urlretrieve(appimagetool_url, appimagetool_path)
     os.chmod(appimagetool_path, 0o755)
 
     # Extract appimagetool
-    subprocess.run([appimagetool_path, "--appimage-extract"], check=True)
-    appimagetool_dir = os.path.join(tools_tmpdir, "appimagetool.AppDir")
-    shutil.move("squashfs-root", appimagetool_dir)
+    original_dir = os.getcwd()
+    # os.chdir(tools_tmpdir)
+    subprocess.run(
+        [appimagetool_path, "--appimage-extract"], check=True, cwd=tools_tmpdir
+    )
+    # os.chdir(original_dir)
+    appimagetool_dir = os.path.join(tools_tmpdir, "squashfs-root")
 
     # Set permissions
     os.chmod("cursor.AppDir/squashfs-root", 0o755)
 
-    # Download patch files
-    patch_features_url = (
-        "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features"
-    )
-    patch_marketplace_url = (
-        "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace"
-    )
-    patch_features_path = os.path.join(tools_tmpdir, "patch_features.json")
-    patch_marketplace_path = os.path.join(tools_tmpdir, "patch_marketplace.json")
-    urllib.request.urlretrieve(patch_features_url, patch_features_path)
-    urllib.request.urlretrieve(patch_marketplace_url, patch_marketplace_path)
+    # Download and apply patches
+    patch_urls = {
+        "features": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features",
+        "marketplace": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace",
+    }
 
-    # Apply patches
-    subprocess.run(["python", "patch.py", patch_features_path], check=True)
-    subprocess.run(["python", "patch.py", patch_marketplace_path], check=True)
+    for patch_url in patch_urls.values():
+        req = urllib.request.Request(patch_url, headers=headers)
+        with urllib.request.urlopen(req) as response:
+            patch_data = json.load(response)
+            apply_patch(
+                "cursor.AppDir/squashfs-root/resources/app/product.json", patch_data
+            )
 
     # Build final AppImage
+    os.makedirs("dist", exist_ok=True)
     github_repo = os.environ.get('GITHUB_REPOSITORY', '').replace('/', '|')
     update_info = f"gh-releases-zsync|{github_repo}|latest|Cursor*.AppImage.zsync"
-    output_name = f"Cursor-{version}-{machine}.AppImage"
+    output_name = os.path.join(
+        original_dir, "dist", f"Cursor-{version}-{machine}.AppImage"
+    )
 
     subprocess.run(
         [
@@ -108,16 +128,11 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
             "-n",
             "--comp",
             "zstd",
-            "cursor.AppDir/squashfs-root",
+            os.path.join(original_dir, "cursor.AppDir", "squashfs-root"),
             "--updateinformation",
             update_info,
             output_name,
         ],
         check=True,
+        cwd=original_dir,
     )
-
-    # Move final files to dist directory
-    os.makedirs("dist", exist_ok=True)
-    for file in os.listdir():
-        if file.startswith(f"Cursor-{version}-{machine}"):
-            shutil.move(file, os.path.join("dist", file))
