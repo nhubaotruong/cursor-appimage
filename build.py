@@ -77,7 +77,7 @@ os.chmod(tmp_name, 0o755)
 # Create and extract AppImage
 os.makedirs("cursor.AppDir", exist_ok=True)
 os.chdir("cursor.AppDir")
-subprocess.run([f"../{tmp_name}", "--appimage-extract"], check=True)
+subprocess.run([tmp_name, "--appimage-extract"], check=True)
 os.chdir("..")
 
 # Clean up after extraction is complete
