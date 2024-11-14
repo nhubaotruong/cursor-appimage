@@ -69,16 +69,22 @@ with tempfile.NamedTemporaryFile(suffix='.AppImage', delete=False) as tmp_appima
     urllib.request.urlretrieve(url, tmp_appimage.name)
     tmp_appimage.flush()
     os.fsync(tmp_appimage.fileno())
-    os.chmod(tmp_appimage.name, 0o755)
+    tmp_name = tmp_appimage.name  # Store the name for later use
 
-    # Create and extract AppImage
-    os.makedirs("cursor.AppDir", exist_ok=True)
-    subprocess.run(
-        [tmp_appimage.name, "--appimage-extract"], check=True, cwd="cursor.AppDir"
-    )
+# Set permissions after file is closed
+os.chmod(tmp_name, 0o755)
 
-# Clean up Cursor AppImage
-os.unlink(tmp_appimage.name)
+# Create and extract AppImage
+os.makedirs("cursor.AppDir", exist_ok=True)
+os.chdir("cursor.AppDir")
+subprocess.run([f"../{tmp_name}", "--appimage-extract"], check=True)
+os.chdir("..")
+
+# Clean up after extraction is complete
+try:
+    os.unlink(tmp_name)
+except OSError:
+    print(f"Warning: Could not remove temporary file {tmp_name}")
 
 # Handle appimagetool and patches in separate temp directory
 with tempfile.TemporaryDirectory(delete=False) as tools_tmpdir:
