@@ -60,10 +60,10 @@ if not cursor_version_search:
     sys.exit(1)
 
 version = cursor_version_search.group(0)
-if version == latest_tag:
-    with open(os.environ.get('GITHUB_ENV', os.devnull), 'a') as f:
-        f.write("APP_UPDATE_NEEDED=false\n")
-    sys.exit(0)
+# if version == latest_tag:
+#     with open(os.environ.get('GITHUB_ENV', os.devnull), 'a') as f:
+#         f.write("APP_UPDATE_NEEDED=false\n")
+#     sys.exit(0)
 
 # Set environment variables for GitHub Actions
 with open(os.environ.get('GITHUB_ENV', os.devnull), 'a') as f:
@@ -167,8 +167,9 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
         check=True,
     )
 
-    for file in os.listdir(pathlib.Path.home()):
+for root, _, files in os.walk(pathlib.Path.home()):
+    for file in files:
         if file.startswith(f"Cursor-{version}-{machine}"):
-            src = os.path.join(pathlib.Path.home(), file)
+            src = os.path.join(root, file)
             dst = os.path.join(dist_dir, file)
             shutil.move(src, dst)
