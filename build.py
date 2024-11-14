@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
 
+import json
 import os
+import pathlib
 import platform
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 import urllib.request
-import json
 
 # Keep original headers
 headers = {
     "Accept": "*/*",
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
 }
+
+
+def download_progress_hook(count, blocksize, totalsize):
+    if totalsize > 0:
+        percent = min(int(count * blocksize * 100 / totalsize), 100)
+        sys.stdout.write(f"\rDownloading... {percent}%")
+        if percent == 100:
+            sys.stdout.write("\n")
+    sys.stdout.flush()
 
 
 def apply_patch(product_path, patch_data):
@@ -36,7 +46,7 @@ latest_tag = (
     .decode()
     .strip()
 )
-
+print(latest_tag)
 # Check version from headers first
 url = "https://downloader.cursor.sh/linux/appImage/x64"
 req = urllib.request.Request(url, method='GET', headers=headers)
@@ -66,15 +76,24 @@ with tempfile.NamedTemporaryFile(suffix='.AppImage', delete=False) as tmp_appima
     opener = urllib.request.build_opener()
     opener.addheaders = list(headers.items())
     urllib.request.install_opener(opener)
-    urllib.request.urlretrieve(url, tmp_appimage.name)
-    tmp_name = tmp_appimage.name  # Store the name for later use
+    print("Downloading Cursor AppImage...")
+    urllib.request.urlretrieve(url, tmp_appimage.name, download_progress_hook)
+    tmp_appimage.flush()
+    os.fsync(tmp_appimage.fileno())
+    tmp_name = tmp_appimage.name
 
 # Set permissions after file is closed
 os.chmod(tmp_name, 0o755)
 
 # Create and extract AppImage
 os.makedirs("cursor.AppDir", exist_ok=True)
-subprocess.run([tmp_name, "--appimage-extract"], check=True, cwd="cursor.AppDir")
+subprocess.run(
+    [tmp_name, "--appimage-extract"],
+    check=True,
+    cwd="cursor.AppDir",
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
 
 # Clean up after extraction is complete
 try:
@@ -89,14 +108,21 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
     # Download and setup appimagetool
     appimagetool_url = f"https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-{machine}.AppImage"
     appimagetool_path = os.path.join(tools_tmpdir, "appimagetool")
-    urllib.request.urlretrieve(appimagetool_url, appimagetool_path)
+    print("Downloading appimagetool...")
+    urllib.request.urlretrieve(
+        appimagetool_url, appimagetool_path, download_progress_hook
+    )
     os.chmod(appimagetool_path, 0o755)
 
     # Extract appimagetool
     original_dir = os.getcwd()
     # os.chdir(tools_tmpdir)
     subprocess.run(
-        [appimagetool_path, "--appimage-extract"], check=True, cwd=tools_tmpdir
+        [appimagetool_path, "--appimage-extract"],
+        check=True,
+        cwd=tools_tmpdir,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
     # os.chdir(original_dir)
     appimagetool_dir = os.path.join(tools_tmpdir, "squashfs-root")
@@ -119,12 +145,12 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
             )
 
     # Build final AppImage
-    os.makedirs("dist", exist_ok=True)
+    # Create dist directory with absolute path
+    dist_dir = os.path.join(original_dir, "dist")
+    os.makedirs(dist_dir, exist_ok=True)
     github_repo = os.environ.get('GITHUB_REPOSITORY', '').replace('/', '|')
     update_info = f"gh-releases-zsync|{github_repo}|latest|Cursor*.AppImage.zsync"
-    output_name = os.path.join(
-        original_dir, "dist", f"Cursor-{version}-{machine}.AppImage"
-    )
+    output_name = f"Cursor-{version}-{machine}.AppImage"
 
     subprocess.run(
         [
@@ -138,5 +164,10 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
             output_name,
         ],
         check=True,
-        cwd=original_dir,
     )
+
+    for file in os.listdir(pathlib.Path.home()):
+        if file.startswith(f"Cursor-{version}-{machine}"):
+            src = os.path.join(pathlib.Path.home(), file)
+            dst = os.path.join(dist_dir, file)
+            shutil.move(src, dst)
