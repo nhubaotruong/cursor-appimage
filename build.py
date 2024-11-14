@@ -67,8 +67,6 @@ with tempfile.NamedTemporaryFile(suffix='.AppImage', delete=False) as tmp_appima
     opener.addheaders = list(headers.items())
     urllib.request.install_opener(opener)
     urllib.request.urlretrieve(url, tmp_appimage.name)
-    tmp_appimage.flush()
-    os.fsync(tmp_appimage.fileno())
     tmp_name = tmp_appimage.name  # Store the name for later use
 
 # Set permissions after file is closed
@@ -76,9 +74,7 @@ os.chmod(tmp_name, 0o755)
 
 # Create and extract AppImage
 os.makedirs("cursor.AppDir", exist_ok=True)
-os.chdir("cursor.AppDir")
-subprocess.run([tmp_name, "--appimage-extract"], check=True)
-os.chdir("..")
+subprocess.run([tmp_name, "--appimage-extract"], check=True, cwd="cursor.AppDir")
 
 # Clean up after extraction is complete
 try:
@@ -87,7 +83,7 @@ except OSError:
     print(f"Warning: Could not remove temporary file {tmp_name}")
 
 # Handle appimagetool and patches in separate temp directory
-with tempfile.TemporaryDirectory(delete=False) as tools_tmpdir:
+with tempfile.TemporaryDirectory() as tools_tmpdir:
     machine = platform.machine()
 
     # Download and setup appimagetool
