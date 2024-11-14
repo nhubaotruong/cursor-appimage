@@ -67,6 +67,8 @@ with tempfile.NamedTemporaryFile(suffix='.AppImage', delete=False) as tmp_appima
     opener.addheaders = list(headers.items())
     urllib.request.install_opener(opener)
     urllib.request.urlretrieve(url, tmp_appimage.name)
+    tmp_appimage.flush()
+    os.fsync(tmp_appimage.fileno())
     os.chmod(tmp_appimage.name, 0o755)
 
     # Create and extract AppImage
