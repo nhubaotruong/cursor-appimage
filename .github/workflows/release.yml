@@ -48,3 +48,17 @@ jobs:
           removeArtifacts: true
           artifactErrorsFailBuild: true
           generateReleaseNotes: true
+
+      - name: Release latest
+        if: env.APP_UPDATE_NEEDED == 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          name: Cursor AppImage latest
+          tag: latest
+          artifacts: |
+            dist/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          removeArtifacts: true
+          artifactErrorsFailBuild: true
+          generateReleaseNotes: true

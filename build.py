@@ -150,7 +150,7 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
     dist_dir = os.path.join(original_dir, "dist")
     os.makedirs(dist_dir, exist_ok=True)
     github_repo = os.environ.get('GITHUB_REPOSITORY', '').replace('/', '|')
-    update_info = f"gh-releases-zsync|{github_repo}|latest|Cursor*.AppImage"
+    update_info = f"gh-releases-zsync|{github_repo}|latest|Cursor*.AppImage.zsync"
     output_name = f"Cursor-{version}-{machine}.AppImage"
 
     subprocess.run(
