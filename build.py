@@ -42,38 +42,40 @@ def apply_patch(product_path, patch_data):
 # Get latest tag
 latest_tag = (
     subprocess.check_output(
-        ['git', 'describe', '--tags', '--abbrev=0'], cwd=os.getcwd()
+        ["git", "describe", "--tags", "--abbrev=0"], cwd=os.getcwd()
     )
     .decode()
     .strip()
 )
-print(latest_tag)
+print("latest_tag", latest_tag)
 # Check version from headers first
-url = "https://downloader.cursor.sh/linux/appImage/x64"
-req = urllib.request.Request(url, method='GET', headers=headers)
-response = urllib.request.urlopen(req)
-content_disposition = response.headers.get('Content-Disposition', '')
+url = "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable"
+get_version_req = urllib.request.Request(url, method="GET", headers=headers)
+with urllib.request.urlopen(get_version_req) as get_version_response:
+    get_version_data = json.load(get_version_response)
 
-cursor_version_search = re.search(r"\d+\.\d+(?:\.\d+(?:\.\d+)?)?", content_disposition)
-if not cursor_version_search:
-    print("Failed to get cursor version")
-    sys.exit(1)
+download_url = get_version_data.get("downloadUrl")
+latest_version = get_version_data.get("version")
 
-version = cursor_version_search.group(0)
+print("latest_version", latest_version)
+if latest_version == latest_tag:
+    print("No update needed")
+    sys.exit(0)
+
 # if version == latest_tag:
 #     with open(os.environ.get('GITHUB_ENV', os.devnull), 'a') as f:
 #         f.write("APP_UPDATE_NEEDED=false\n")
 #     sys.exit(0)
 
 # Set environment variables for GitHub Actions
-with open(os.environ.get('GITHUB_ENV', os.devnull), 'a') as f:
+with open(os.environ.get("GITHUB_ENV", os.devnull), "a") as f:
     f.write("APP_UPDATE_NEEDED=true\n")
-    f.write(f"VERSION={version}\n")
+    f.write(f"VERSION={latest_version}\n")
 
-os.environ['APPIMAGE_EXTRACT_AND_RUN'] = '1'
+os.environ["APPIMAGE_EXTRACT_AND_RUN"] = "1"
 
 # Handle Cursor AppImage download and extraction
-with tempfile.NamedTemporaryFile(suffix='.AppImage', delete=False) as tmp_appimage:
+with tempfile.NamedTemporaryFile(suffix=".AppImage", delete=False) as tmp_appimage:
     opener = urllib.request.build_opener()
     opener.addheaders = list(headers.items())
     urllib.request.install_opener(opener)
@@ -149,9 +151,9 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
     # Create dist directory with absolute path
     dist_dir = os.path.join(original_dir, "dist")
     os.makedirs(dist_dir, exist_ok=True)
-    github_repo = os.environ.get('GITHUB_REPOSITORY', '').replace('/', '|')
+    github_repo = os.environ.get("GITHUB_REPOSITORY", "").replace("/", "|")
     update_info = f"gh-releases-zsync|{github_repo}|latest|Cursor*.AppImage.zsync"
-    output_name = f"Cursor-{version}-{machine}.AppImage"
+    output_name = f"Cursor-{latest_version}-{machine}.AppImage"
 
     subprocess.run(
         [
@@ -169,7 +171,7 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
 
 for root, _, files in os.walk(pathlib.Path.home()):
     for file in files:
-        if file.startswith(f"Cursor-{version}-{machine}"):
+        if file.startswith(f"Cursor-{latest_version}-{machine}"):
             src = os.path.join(root, file)
             dst = os.path.join(dist_dir, file)
             shutil.move(src, dst)
