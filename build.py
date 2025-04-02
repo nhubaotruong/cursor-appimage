@@ -80,7 +80,7 @@ with tempfile.NamedTemporaryFile(suffix=".AppImage", delete=False) as tmp_appima
     opener.addheaders = list(headers.items())
     urllib.request.install_opener(opener)
     print("Downloading Cursor AppImage...")
-    urllib.request.urlretrieve(url, tmp_appimage.name, download_progress_hook)
+    urllib.request.urlretrieve(download_url, tmp_appimage.name, download_progress_hook)
     tmp_appimage.flush()
     os.fsync(tmp_appimage.fileno())
     tmp_name = tmp_appimage.name
