@@ -144,8 +144,13 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
         with urllib.request.urlopen(req) as response:
             patch_data = json.load(response)
             apply_patch(
-                "cursor.AppDir/squashfs-root/resources/app/product.json", patch_data
+                "cursor.AppDir/squashfs-root/usr/share/cursor/resources/app/product.json",
+                patch_data,
             )
+
+    os.remove(
+        "cursor.AppDir/squashfs-root/usr/share/cursor/resources/appimageupdatetool.AppImage"
+    )
 
     # Build final AppImage
     # Create dist directory with absolute path
