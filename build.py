@@ -136,7 +136,7 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
     # Download and apply patches
     patch_urls = {
         "features": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features",
-        "marketplace": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace",
+        # "marketplace": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace",
     }
 
     product_path = "cursor.AppDir/squashfs-root/usr/share/cursor/resources/app/product.json"
