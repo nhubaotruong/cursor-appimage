@@ -147,6 +147,16 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
                 "cursor.AppDir/squashfs-root/usr/share/cursor/resources/app/product.json",
                 patch_data,
             )
+    
+    with open(file=product_path, mode="r") as product_file:
+        product_data = json.load(product_file)
+
+    # Apply patches in memory
+    product_data.pop("extensionMaxVersions", None)
+    product_data.pop("linkProtectionTrustedDomains", None)
+
+    with open(file=product_path, mode="w") as product_file:
+        json.dump(obj=product_data, fp=product_file, indent="\t")
 
     os.remove(
         "cursor.AppDir/squashfs-root/usr/share/cursor/resources/appimageupdatetool.AppImage"
