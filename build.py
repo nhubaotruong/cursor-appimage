@@ -139,12 +139,14 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
         "marketplace": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace",
     }
 
+    product_path = "cursor.AppDir/squashfs-root/usr/share/cursor/resources/app/product.json"
+
     for patch_url in patch_urls.values():
         req = urllib.request.Request(patch_url, headers=headers)
         with urllib.request.urlopen(req) as response:
             patch_data = json.load(response)
             apply_patch(
-                "cursor.AppDir/squashfs-root/usr/share/cursor/resources/app/product.json",
+                product_path,
                 patch_data,
             )
     
