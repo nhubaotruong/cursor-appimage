@@ -134,31 +134,31 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
     os.chmod("cursor.AppDir/squashfs-root", 0o755)
 
     # Download and apply patches
-    patch_urls = {
-        "features": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features",
+    # patch_urls = {
+        # "features": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features",
         # "marketplace": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace",
-    }
+    # }
 
-    product_path = "cursor.AppDir/squashfs-root/usr/share/cursor/resources/app/product.json"
+    # product_path = "cursor.AppDir/squashfs-root/usr/share/cursor/resources/app/product.json"
 
-    for patch_url in patch_urls.values():
-        req = urllib.request.Request(patch_url, headers=headers)
-        with urllib.request.urlopen(req) as response:
-            patch_data = json.load(response)
-            apply_patch(
-                product_path,
-                patch_data,
-            )
+    # for patch_url in patch_urls.values():
+    #     req = urllib.request.Request(patch_url, headers=headers)
+    #     with urllib.request.urlopen(req) as response:
+    #         patch_data = json.load(response)
+    #         apply_patch(
+    #             product_path,
+    #             patch_data,
+    #         )
     
-    with open(file=product_path, mode="r") as product_file:
-        product_data = json.load(product_file)
+    # with open(file=product_path, mode="r") as product_file:
+    #     product_data = json.load(product_file)
 
     # Apply patches in memory
-    product_data.pop("extensionMaxVersions", None)
-    product_data.pop("linkProtectionTrustedDomains", None)
+    # product_data.pop("extensionMaxVersions", None)
+    # product_data.pop("linkProtectionTrustedDomains", None)
 
-    with open(file=product_path, mode="w") as product_file:
-        json.dump(obj=product_data, fp=product_file, indent="\t")
+    # with open(file=product_path, mode="w") as product_file:
+    #     json.dump(obj=product_data, fp=product_file, indent="\t")
 
     os.remove(
         "cursor.AppDir/squashfs-root/usr/share/cursor/resources/appimageupdatetool.AppImage"
