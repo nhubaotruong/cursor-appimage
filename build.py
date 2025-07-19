@@ -40,13 +40,20 @@ def apply_patch(product_path, patch_data):
 
 
 # Get latest tag
-latest_tag = (
-    subprocess.check_output(
-        ["git", "describe", "--tags", "--abbrev=0"], cwd=os.getcwd()
-    )
+tags = (
+    subprocess.check_output(["git", "tag", "--sort=-version:refname"], cwd=os.getcwd())
     .decode()
     .strip()
+    .split("\n")
 )
+try:
+    tags.remove("latest")
+except ValueError:
+    pass
+
+latest_tag = tags[0]
+
+
 print("latest_tag", latest_tag)
 # Check version from headers first
 url = "https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable"
