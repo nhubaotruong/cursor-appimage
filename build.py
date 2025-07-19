@@ -135,8 +135,8 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
 
     # Download and apply patches
     # patch_urls = {
-        # "features": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features",
-        # "marketplace": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace",
+    # "features": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-features",
+    # "marketplace": "https://aur.archlinux.org/cgit/aur.git/plain/patch.json?h=code-marketplace",
     # }
 
     # product_path = "cursor.AppDir/squashfs-root/usr/share/cursor/resources/app/product.json"
@@ -149,7 +149,7 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
     #             product_path,
     #             patch_data,
     #         )
-    
+
     # with open(file=product_path, mode="r") as product_file:
     #     product_data = json.load(product_file)
 
@@ -163,6 +163,16 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
     os.remove(
         "cursor.AppDir/squashfs-root/usr/share/cursor/resources/appimageupdatetool.AppImage"
     )
+
+    with open("cursor.AppDir/squashfs-root/cursor.desktop", "r") as f:
+        desktop_data = f.read()
+        desktop_data = desktop_data.replace(
+            "Exec=cursor",
+            "Exec=cursor --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform-hint=auto --unity-launch",
+        )
+
+    with open("cursor.AppDir/squashfs-root/cursor.desktop", "w") as f:
+        f.write(desktop_data)
 
     # Build final AppImage
     # Create dist directory with absolute path
