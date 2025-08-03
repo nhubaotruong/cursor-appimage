@@ -175,7 +175,7 @@ with tempfile.TemporaryDirectory() as tools_tmpdir:
         desktop_data = f.read()
         desktop_data = desktop_data.replace(
             "Exec=cursor",
-            "Exec=cursor --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform-hint=auto --unity-launch",
+            "Exec=cursor --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform-hint=auto --disable-gpu-vsync --disable-gpu-driver-bug-workarounds --gtk-version=4 --ignore-gpu-blocklist --unity-launch",
         )
 
     with open("cursor.AppDir/squashfs-root/cursor.desktop", "w") as f:
